@@ -6,18 +6,19 @@
 ---
 
 ## 1. Resumen Ejecutivo
-El proyecto implementa una arquitectura orientada a eventos con el objetivo de ser eficiente frente a usos intencivos: 
-          frontend (React)
-      ┌──────────┘└─────────┐
-      ↓                     ↓
-Producer (Express)    Reports-Query
-      ↓                     ↑
-  RabbitMQ                  │
-      ↓                     │
-Consumer (worker)           │
-      │                     │
-      └────→PostgreSQL←─────┘
-
+El proyecto implementa una arquitectura orientada a eventos con el objetivo de ser eficiente frente a usos intencivos:
+```
+          frontend (React) 
+      ┌──────────┘└─────────┐ 
+      ↓                     ↓ 
+Producer (Express)    Reports-Query 
+      ↓                     ↑ 
+  RabbitMQ                  │ 
+      ↓                     │ 
+Consumer (worker)           │ 
+      │                     │ 
+      └───→ PostgreSQL ←────┘ 
+```
 
 La separación de responsabilidades y el uso de patrones (Singleton para conexiones, Facade para mensajería, Strategy para priorización) está presente en el diseño. 
 
