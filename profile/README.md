@@ -33,3 +33,8 @@
 - [FASE_4_AMBIGUEDADES_VALIDACION.md](https://github.com/AITraining-SofkaProyects-Team2/.github/blob/main/sistema-distribuido%20(Documentation)/FASE_4_AMBIGUEDADES_VALIDACION.md)
 - [DOCUMENTO_FINAL_ANALISIS_REQUERIMIENTOS.md](https://github.com/AITraining-SofkaProyects-Team2/.github/blob/main/sistema-distribuido%20(Documentation)/DOCUMENTO_FINAL_ANALISIS_REQUERIMIENTOS.md)
 - [TEST_PLAN.md](https://github.com/AITraining-SofkaProyects-Team2/.github/blob/main/sistema-distribuido%20(Documentation)/TEST_PLAN.md)
+
+
+## semana 3
+- [ARCHITECTURE.md](https://github.com/AITraining-SofkaProyects-Team2/.github/blob/main/sistema-distribuido%20(Documentation)/ARCHITECTURE.md)
+
