@@ -156,6 +156,7 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 ### 6.1 ¿Es necesario cambiar la arquitectura?
 No. La arquitectura orientada a eventos es adecuada para el dominio (picos, desacoplamiento). Recomiendo mejoras operativas y de gobernanza (tipos compartidos, CI, consistencia de imágenes) antes que re-arquitecturar.
 
+
 ### 6.2 Diagrama de arquitectura propuesta
 ```
 [Frontend]  ->  [Producer API]  ->  [RabbitMQ Broker]  ->  [Consumer(s) scaled]
@@ -184,3 +185,26 @@ Shared contracts package (monorepo or npm) referenced by all services
   - Mejorar restart policies y separar scripts de seed/init (R-03,R-04).  
 
 ¿Querés que aplique los cambios y genere los parches (Dockerfiles y `docker-compose.yml`) y cree `documentación/ARCHITECTURE_REPORT.md` en el repo? Indica si querés que cree PRs o simplemente te entregue los patches.
+
+## Producer
+
+### Qué verbo usa y a qué URL
+
+`POST /complaints`
+
+Cambiamos el comportamiento del endpoint de creación a `202 Accepted` (operaciones asíncronas)
+Desacoplamos la disponibilidad del broker de mensajería y evitar que la API falle por indisponibilidad temporal de RabbitMQ.
+- **Descripción:**
+  - El endpoint `POST /complaints` del Producer pasa de responder `201 Created` a `202 Accepted` cuando la creación implica encolado asíncrono del evento.
+  - Motivo: la operación principal del Producer es aceptar la petición y encolar un evento para el Consumer; la persistencia la realiza el Consumer. Responder `202` permite que el Producer confirme recepción sin bloquearse por la confirmación del broker.
+- **Comportamiento y contrato del endpoint después del cambio:**
+  - Endpoint: `POST /complaints`
+  - Código HTTP: `202 Accepted`
+  - Cuerpo de respuesta (JSON):
+    - `ticketId` (string): identificador único del ticket generado.
+    - `status` (string): valor inicial `RECEIVED` (indica que el ticket fue aceptado para procesamiento).
+    - `message` (string): texto breve — ejemplo: `Accepted for processing`.
+    - `createdAt` (string, ISO-8601): timestamp de creación del ticket.
+
+- **Conclusion:** 
+    Se cambió el comportamiento de `POST /complaints`: antes el endpoint aguardaba la confirmación de publicación en RabbitMQ y devolvía `201 Created` con el ticket completo. Si la publicación fallaba, la API devolvía `503 Service Unavailable`. Ahora el endpoint devuelve `202 Accepted` y un cuerpo reducido ({ ticketId, status: 'RECEIVED', message, createdAt }) inmediatamente; la publicación a RabbitMQ se hace en modo asíncrono. En caso de validación sigue devolviendo `400 Bad Request`. Si la publicación asíncrona falla, el error se registra y se incrementan métricas pero el cliente ya recibió `202` (no se devuelve `503`). Errores no controlados siguen mapeándose a `500 Internal Server Error`.
