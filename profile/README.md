@@ -37,4 +37,5 @@
 
 ## semana 3
 - [ARCHITECTURE.md](https://github.com/AITraining-SofkaProyects-Team2/.github/blob/main/sistema-distribuido%20(Documentation)/ARCHITECTURE.md)
-
+- [UHs_Documentation.md](https://github.com/AITraining-SofkaProyects-Team2/.github/blob/main/sistema-distribuido%20(Documentation)/UHs_Documentation.md)
+- [TESTS_DESIGNS.md](https://github.com/AITraining-SofkaProyects-Team2/.github/blob/main/sistema-distribuido%20(Documentation)/TESTS_DESIGNS.md)
