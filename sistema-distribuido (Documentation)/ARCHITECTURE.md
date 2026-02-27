@@ -111,3 +111,45 @@ Cuerpo de la petición (JSON):
       1. Síncrono + confirmación broker: intentar publicar y, si OK, devolver 201/202; si broker down, devolver 503. (simple, fuerte garantía)
       2. Asíncrono con Outbox/cola local durable: persistir el evento localmente atomically, devolver 202 inmediatamente; un worker publica a RabbitMQ en segundo plano (recomendado si quieres disponibilidad del API con durable guarantee).
       3. Asíncrono sin persistencia local: devolver 202 al iniciar el envío y confiar en logs/metricas/reintentos en memoria — riesgo de pérdida de mensajes si Rabbit cae (poco recomendable para producción).
+
+
+
+## Reports-query
+
+### Antes de la refactorización
+| Endpoint | 200 | 400 | 404 | 405 | 500 |
+|----------|:---:|:---:|:---:|:---:|:---:|
+| `GET /health` | ✅ | — | — | — | — |
+| `GET /api/tickets` | ✅ | ❌ Sin validación de params | — | — | ✅ |
+| `GET /api/tickets/metrics` | ✅ | — | — | — | ✅ |
+| `GET /api/tickets/line/:lineNumber` | ✅ | ❌ Error genérico → 500 | — | — | ✅ |
+| `GET /api/tickets/:ticketId` | ✅ | ✅ InvalidUuidFormatError | ✅ TicketNotFoundError | — | ✅ |
+| `POST /api/tickets` | — | — | — | ❌ Sin handler | — |
+| Rutas desconocidas | — | — | ❌ Sin catch-all | — | — |
+
+### Después de la refactorización
+| Endpoint | 200 | 400 | 404 | 405 | 500 |
+|----------|:---:|:---:|:---:|:---:|:---:|
+| `GET /health` | ✅ | — | — | — | — |
+| `GET /api/tickets` | ✅ | ✅ Validación completa | — | — | ✅ |
+| `GET /api/tickets/metrics` | ✅ | — | — | — | ✅ |
+| `GET /api/tickets/line/:lineNumber` | ✅ | ✅ ValidationError | — | — | ✅ |
+| `GET /api/tickets/:ticketId` | ✅ | ✅ InvalidUuidFormatError | ✅ TicketNotFoundError | — | ✅ |
+| `POST/PUT/DELETE /api/*` | — | — | — | ✅ 405 + `Allow: GET` | — |
+| Rutas desconocidas | — | — | ✅ 404 JSON | — | — |
+
+
+### `GET /health`
+
+### `GET /api/tickets`
+
+### `GET /api/tickets/metrics`
+
+### `GET /api/tickets/line/:lineNumber`
+
+### `GET /api/tickets/:ticketId`
+
+### `POST/PUT/DELETE /api/*`
+
+### Rutas desconocidas
+
