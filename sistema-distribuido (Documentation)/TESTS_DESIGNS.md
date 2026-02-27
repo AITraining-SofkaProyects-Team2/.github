@@ -27,13 +27,13 @@ Este documento contiene el diseño detallado de los casos de prueba para las his
 
 ===TESTS EN FRONTEND===
 | RED | TC-013-013 | UH-013 | Modal se abre al hacer clic en botón de cambio de estado | integración de componentes |
-| RED | TC-013-014 | UH-013 | Modal muestra información correcta del ticket | integración de componentes |
-| RED | TC-013-015 | UH-013 | Selector muestra todos los estados disponibles | integración de componentes |
-| RED | TC-013-016 | UH-013 | Modal se cierra al hacer clic en Cancelar | integración de componentes |
-| RED | TC-013-017 | UH-013 | Modal envía request correcta al confirmar cambio | integración de componentes |
-| RED | TC-013-018 | UH-013 | Lista se actualiza después de cambio exitoso | integración de componentes |
-| RED | TC-013-019 | UH-013 | Mensaje de error se muestra en caso de fallo | integración de componentes |
-| RED | TC-013-020 | UH-013 | Modal se cierra automáticamente después de éxito | integración de componentes |
+| GREEN | TC-013-014 | UH-013 | Modal muestra información correcta del ticket | integración de componentes |
+| GREEN | TC-013-015 | UH-013 | Selector muestra todos los estados disponibles | integración de componentes |
+| GREEN | TC-013-016 | UH-013 | Modal se cierra al hacer clic en Cancelar | integración de componentes |
+| GREEN | TC-013-017 | UH-013 | Modal envía request correcta al confirmar cambio | integración de componentes |
+| GREEN | TC-013-018 | UH-013 | Lista se actualiza después de cambio exitoso | integración de componentes |
+| GREEN | TC-013-019 | UH-013 | Mensaje de error se muestra en caso de fallo | integración de componentes |
+| GREEN | TC-013-020 | UH-013 | Modal se cierra automáticamente después de éxito | integración de componentes |
 ---
 
 ## Casos de Prueba Detallados
