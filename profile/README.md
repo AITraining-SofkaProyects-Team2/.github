@@ -15,7 +15,7 @@
 - [README.md](https://github.com/AITraining-SofkaProyects-Team2/.github/blob/main/sistema-distribuido%20(Documentation)/README.md)
 
 ## semana 0
-- [AI_WORKFLOW.md]([documentación/AI_WORKFLOW.md](https://github.com/AITraining-SofkaProyects-Team2/.github/blob/main/sistema-distribuido%20(Documentation)/AI_WORKFLOW.md))
+- [AI_WORKFLOW.md](https://github.com/AITraining-SofkaProyects-Team2/.github/blob/main/sistema-distribuido%20(Documentation)/AI_WORKFLOW.md)
 
 ## semana 1
 - [AUDITORIA.md](https://github.com/AITraining-SofkaProyects-Team2/.github/blob/main/sistema-distribuido%20(Documentation)/AUDITORIA.md) 
@@ -37,5 +37,5 @@
 
 ## semana 3
 - [ARCHITECTURE.md](https://github.com/AITraining-SofkaProyects-Team2/.github/blob/main/sistema-distribuido%20(Documentation)/ARCHITECTURE.md)
-- [UHs_Documentation.md](https://github.com/AITraining-SofkaProyects-Team2/.github/blob/main/sistema-distribuido%20(Documentation)/UHs_Documentation.md)
+- [UHs_INVEST.md](https://github.com/AITraining-SofkaProyects-Team2/.github/blob/main/sistema-distribuido%20(Documentation)/UHs_INVEST.md)
 - [TESTS_DESIGNS.md](https://github.com/AITraining-SofkaProyects-Team2/.github/blob/main/sistema-distribuido%20(Documentation)/TESTS_DESIGNS.md)
