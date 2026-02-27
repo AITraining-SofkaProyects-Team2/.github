@@ -10,32 +10,30 @@ Este documento contiene el diseño detallado de los casos de prueba para las his
 
 ### UH-013: Cambio de Estado de Tickets desde la Lista
 
-| Estado | ID Test | Historia | Descripción |
-|---------|----------|-------------|--------|
-| ⬜ | TC-013-001 | UH-013 | Validación de formato de ticketId - UUID válido | 
-| ⬜ | TC-013-002 | UH-013 | Validación de formato de ticketId - UUID inválido |
-| ⬜ | TC-013-003 | UH-013 | Validación de estado válido - RECEIVED |
-| ⬜ | TC-013-004 | UH-013 | Validación de estado válido - IN_PROGRESS |
-| ⬜ | TC-013-005 | UH-013 | Validación de estado inválido - valores fuera del dominio |
-| ⬜ | TC-013-006 | UH-013 | Actualización exitosa de RECEIVED a IN_PROGRESS |
-| ⬜ | TC-013-007 | UH-013 | Actualización exitosa de IN_PROGRESS a RECEIVED |
-| ⬜ | TC-013-008 | UH-013 | Error 404 - Ticket no encontrado |
-| ⬜ | TC-013-009 | UH-013 | Actualización idempotente - mismo estado |
-| ⬜ | TC-013-010 | UH-013 | Actualización del campo processed_at |
-| ⬜ | TC-013-011 | UH-013 | Manejo de errores de base de datos |
-| ⬜ | TC-013-012 | UH-013 | Request PATCH completa con body válido retorna 200 |
-| ⬜ | TC-013-013 | UH-013 | Request PATCH con body inválido retorna 400 |
-| ⬜ | TC-013-014 | UH-013 | Modal se abre al hacer clic en botón de cambio de estado |
-| ⬜ | TC-013-015 | UH-013 | Modal muestra información correcta del ticket |
-| ⬜ | TC-013-016 | UH-013 | Selector muestra todos los estados disponibles |
-| ⬜ | TC-013-017 | UH-013 | Modal se cierra al hacer clic en Cancelar |
-| ⬜ | TC-013-018 | UH-013 | Modal envía request correcta al confirmar cambio |
-| ⬜ | TC-013-019 | UH-013 | Lista se actualiza después de cambio exitoso |
-| ⬜ | TC-013-020 | UH-013 | Mensaje de error se muestra en caso de fallo |
-| ⬜ | TC-013-021 | UH-013 | Modal se cierra automáticamente después de éxito |
-| ⬜ | TC-013-022 | UH-013 | Flujo E2E completo de cambio de estado |
-| ⬜ | TC-013-023 | UH-013 | Múltiples cambios de estado consecutivos |
+| Estado | ID Test | Historia | Descripción | Tipo |
+|---------|----------|-------------|--------|------|
+| GREEN | TC-013-001 | UH-013 | Validación de formato de ticketId - UUID válido | Unitario |
+| GREEN | TC-013-002 | UH-013 | Validación de formato de ticketId - UUID inválido | Unitario |
+| GREEN | TC-013-003 | UH-013 | Validación de estado válido - RECEIVED | Unitario |
+| GREEN | TC-013-004 | UH-013 | Validación de estado inválido - valores fuera del dominio | Unitario |
+| GREEN | TC-013-005 | UH-013 | Actualización exitosa de RECEIVED a IN_PROGRESS | Unitario |
+| GREEN | TC-013-006 | UH-013 | Error 404 - Ticket no encontrado | Unitario |
+| GREEN | TC-013-007 | UH-013 | Actualización idempotente - mismo estado | Unitario |
+| GREEN | TC-013-008 | UH-013 | Manejo de errores de base de datos | Unitario |
+| ⬜ | TC-013-009 | UH-013 | Request PATCH completa con body válido retorna 200 | integración de componentes |
+| ⬜ | TC-013-010 | UH-013 | Request PATCH con body inválido retorna 400 | integración de componentes |
+| ⬜ | TC-013-011 | UH-013 | Flujo E2E completo de cambio de estado | E2E |
+| ⬜ | TC-013-012 | UH-013 | Múltiples cambios de estado consecutivos | E2E |
 
+===TESTS EN FRONTEND===
+| ⬜ | TC-013-013 | UH-013 | Modal se abre al hacer clic en botón de cambio de estado | integración de componentes |
+| ⬜ | TC-013-014 | UH-013 | Modal muestra información correcta del ticket | integración de componentes |
+| ⬜ | TC-013-015 | UH-013 | Selector muestra todos los estados disponibles | integración de componentes |
+| ⬜ | TC-013-016 | UH-013 | Modal se cierra al hacer clic en Cancelar | integración de componentes |
+| ⬜ | TC-013-017 | UH-013 | Modal envía request correcta al confirmar cambio | integración de componentes |
+| ⬜ | TC-013-018 | UH-013 | Lista se actualiza después de cambio exitoso | integración de componentes |
+| ⬜ | TC-013-019 | UH-013 | Mensaje de error se muestra en caso de fallo | integración de componentes |
+| ⬜ | TC-013-020 | UH-013 | Modal se cierra automáticamente después de éxito | integración de componentes |
 ---
 
 ## Casos de Prueba Detallados

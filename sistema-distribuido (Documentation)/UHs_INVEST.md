@@ -110,6 +110,19 @@ Then el backend acepta la operación y retorna HTTP 200
   And el frontend muestra el mensaje de confirmación
 ```
 
+#### Métodos bajo prueba (TDD)
+
+| Método | Estado del test |
+|--------|-----------------|
+| `TicketQueryService.updateTicketStatus(ticketId: string, newStatus: TicketStatus): Promise<Ticket>` | ✅ TC-013-001 (GREEN) — Implementado y validando UUID válido |
+| | ✅ TC-013-002 (GREEN) — Validando rechazo de UUID inválido |
+| | ✅ TC-013-003 (GREEN) — Validando aceptación y dominio de estados |
+| | ✅ TC-013-004 (GREEN) — Validando rechazo de estados fuera del dominio |
+| | ✅ TC-013-005 (GREEN) — Validando existencia del ticket antes de actualizar |
+| `TicketsController.updateTicketStatus(req, res)` | ✅ TC-013-006 (GREEN) — Controlador mapea TicketNotFoundError a HTTP 404 |
+| | ✅ TC-013-007 (GREEN) — Validando operación idempotente con mismo estado |
+| `TicketRepository.updateStatus(ticketId, status)` | ✅ TC-013-008 (GREEN) — Validando envoltorio de errores de BD en DatabaseError |
+
 ### Notas Técnicas
 
 #### Arquitectura del Endpoint
@@ -163,32 +176,32 @@ RETURNING *;
 ### Pruebas Requeridas
 
 #### Pruebas Unitarias (Backend)
-- `TC-013-001`: Validación de formato de ticketId (UUID válido/inválido)
-- `TC-013-002`: Validación de estado válido (RECEIVED, IN_PROGRESS) e inválido (CLOSED, otros)
-- `TC-013-003`: Actualización exitosa con ticket existente
-- `TC-013-004`: Error 404 con ticket inexistente
-- `TC-013-005`: Actualización idempotente (mismo estado)
-- `TC-013-006`: Actualización del campo `processed_at`
-- `TC-013-007`: Manejo de errores de base de datos
+- `TC-013-001`: Validación de formato de ticketId — UUID válido
+- `TC-013-002`: Validación de formato de ticketId — UUID inválido
+- `TC-013-003`: Validación de estado válido (RECEIVED)
+- `TC-013-004`: Validación de estado inválido — valores fuera del dominio
+- `TC-013-005`: Actualización exitosa de RECEIVED a IN_PROGRESS
+- `TC-013-006`: Error 404 — Ticket no encontrado
+- `TC-013-007`: Actualización idempotente — mismo estado
+- `TC-013-008`: Manejo de errores de base de datos
 
 #### Pruebas de Integración (Backend)
-- `TC-013-008`: Request PATCH completa con body válido retorna 200
-- `TC-013-009`: Request PATCH con body inválido retorna 400
-- `TC-013-010`: Request PATCH con ID inexistente retorna 404
+- `TC-013-009`: Request PATCH completa con body válido retorna 200
+- `TC-013-010`: Request PATCH con body inválido retorna 400
 
 #### Pruebas de Componente (Frontend)
-- `TC-013-011`: Modal se abre al hacer clic en botón de cambio de estado
-- `TC-013-012`: Modal muestra información correcta del ticket (ID, estado actual)
-- `TC-013-013`: Selector muestra todos los estados disponibles
-- `TC-013-014`: Modal se cierra al hacer clic en Cancelar sin realizar cambios
-- `TC-013-015`: Modal envía request correcta al confirmar cambio
-- `TC-013-016`: Lista se actualiza correctamente después de cambio exitoso
-- `TC-013-017`: Mensaje de error se muestra en caso de fallo
-- `TC-013-018`: Modal se cierra automáticamente después de éxito
+- `TC-013-013`: Modal se abre al hacer clic en botón de cambio de estado
+- `TC-013-014`: Modal muestra información correcta del ticket (ID, estado actual)
+- `TC-013-015`: Selector muestra todos los estados disponibles
+- `TC-013-016`: Modal se cierra al hacer clic en Cancelar sin realizar cambios
+- `TC-013-017`: Modal envía request correcta al confirmar cambio
+- `TC-013-018`: Lista se actualiza correctamente después de cambio exitoso
+- `TC-013-019`: Mensaje de error se muestra en caso de fallo
+- `TC-013-020`: Modal se cierra automáticamente después de éxito
 
 #### Pruebas E2E
-- `TC-013-019`: Flujo completo de cambio de estado exitoso desde UI hasta DB
-- `TC-013-020`: Múltiples cambios de estado consecutivos en diferentes tickets
+- `TC-013-011`: Flujo E2E completo de cambio de estado
+- `TC-013-012`: Múltiples cambios de estado consecutivos en diferentes tickets
 
 
 ---
