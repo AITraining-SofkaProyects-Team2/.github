@@ -148,41 +148,9 @@ Then el sistema valida que "RECEIVED" es un estado válido
 
 ---
 
-#### TC-013-004: Validación de estado válido - IN_PROGRESS
+#### TC-013-004: Validación de estado inválido - valores fuera del dominio
 
 - **ID del Test**: TC-013-004
-- **ID de la Historia de Usuario**: UH-013
-- **Descripción**: Verificar que el endpoint acepta "IN_PROGRESS" como estado válido.
-- **Precondiciones**: 
-  - El Query Service está ejecutándose correctamente
-  - Existe un ticket en la base de datos
-
-**Pasos (Gherkin)**:
-```gherkin
-Given existe un ticket con ID "550e8400-e29b-41d4-a716-446655440000" en estado "RECEIVED"
-When se envía PATCH /api/tickets/550e8400-e29b-41d4-a716-446655440000/status
-  And el body contiene { "status": "IN_PROGRESS" }
-Then el sistema valida que "IN_PROGRESS" es un estado válido
-  And actualiza el ticket al estado "IN_PROGRESS"
-  And retorna HTTP 200
-```
-
-**Partición de equivalencia**:
-| Grupo | Valor de status | Tipo |
-|-------|-----------------|------|
-| Estado válido 1 | "RECEIVED" | Válido |
-| Estado válido 2 | "IN_PROGRESS" | Válido |
-| Con espacios | " IN_PROGRESS " | Inválido |
-| Con guión bajo diferente | "IN-PROGRESS" | Inválido |
-
-**Valores límites**:
-- Segundo de los dos valores permitidos del dominio
-
----
-
-#### TC-013-005: Validación de estado inválido - valores fuera del dominio
-
-- **ID del Test**: TC-013-005
 - **ID de la Historia de Usuario**: UH-013
 - **Descripción**: Verificar que el endpoint rechaza estados que no pertenecen al dominio definido.
 - **Precondiciones**: 
@@ -225,9 +193,9 @@ Then el sistema retorna HTTP 400
 
 ---
 
-#### TC-013-006: Actualización exitosa de RECEIVED a IN_PROGRESS
+#### TC-013-005: Actualización exitosa de RECEIVED a IN_PROGRESS
 
-- **ID del Test**: TC-013-006
+- **ID del Test**: TC-013-005
 - **ID de la Historia de Usuario**: UH-013
 - **Descripción**: Verificar que un ticket puede cambiar exitosamente de estado RECEIVED a IN_PROGRESS.
 - **Precondiciones**: 
@@ -261,43 +229,9 @@ Then el sistema retorna HTTP 200
 
 ---
 
-#### TC-013-007: Actualización exitosa de IN_PROGRESS a RECEIVED
+#### TC-013-006: Error 404 - Ticket no encontrado
 
-- **ID del Test**: TC-013-007
-- **ID de la Historia de Usuario**: UH-013
-- **Descripción**: Verificar que un ticket puede cambiar exitosamente de estado IN_PROGRESS a RECEIVED (transición bidireccional).
-- **Precondiciones**: 
-  - Existe un ticket con ID "550e8400-e29b-41d4-a716-446655440000" en estado "IN_PROGRESS"
-  - La base de datos está disponible
-
-**Pasos (Gherkin)**:
-```gherkin
-Given existe un ticket con ID "550e8400-e29b-41d4-a716-446655440000" en estado "IN_PROGRESS"
-When se envía PATCH /api/tickets/550e8400-e29b-41d4-a716-446655440000/status
-  And el body contiene { "status": "RECEIVED" }
-Then el sistema retorna HTTP 200
-  And la respuesta contiene el ticket actualizado
-  And el ticket tiene status = "RECEIVED"
-  And el campo processed_at se actualiza con la timestamp actual
-```
-
-**Partición de equivalencia**:
-| Grupo | Dirección de Transición | Tipo |
-|-------|-------------------------|------|
-| Forward | RECEIVED → IN_PROGRESS | Válido |
-| Backward | IN_PROGRESS → RECEIVED | Válido |
-| Ninguna | RECEIVED → RECEIVED | Válido |
-| Ninguna | IN_PROGRESS → IN_PROGRESS | Válido |
-
-**Valores límites**:
-- Primera actualización de estado del ticket
-- Ticket actualizado múltiples veces entre estados
-
----
-
-#### TC-013-008: Error 404 - Ticket no encontrado
-
-- **ID del Test**: TC-013-008
+- **ID del Test**: TC-013-006
 - **ID de la Historia de Usuario**: UH-013
 - **Descripción**: Verificar que el sistema retorna HTTP 404 cuando se intenta actualizar un ticket que no existe.
 - **Precondiciones**: 
@@ -327,9 +261,9 @@ Then el sistema retorna HTTP 404
 
 ---
 
-#### TC-013-009: Actualización idempotente - mismo estado
+#### TC-013-007: Actualización idempotente - mismo estado
 
-- **ID del Test**: TC-013-009
+- **ID del Test**: TC-013-007
 - **ID de la Historia de Usuario**: UH-013
 - **Descripción**: Verificar que cambiar un ticket al mismo estado que ya tiene es una operación válida e idempotente.
 - **Precondiciones**: 
@@ -362,45 +296,9 @@ Then el sistema retorna HTTP 200
 
 ---
 
-#### TC-013-010: Actualización del campo processed_at
+#### TC-013-008: Manejo de errores de base de datos
 
-- **ID del Test**: TC-013-010
-- **ID de la Historia de Usuario**: UH-013
-- **Descripción**: Verificar que el campo processed_at se actualiza correctamente con la timestamp actual en cada cambio de estado.
-- **Precondiciones**: 
-  - Existe un ticket con ID "550e8400-e29b-41d4-a716-446655440000"
-  - El sistema genera timestamps en formato ISO 8601
-
-**Pasos (Gherkin)**:
-```gherkin
-Given existe un ticket con ID "550e8400-e29b-41d4-a716-446655440000" en estado "RECEIVED"
-  And el campo processed_at del ticket es "2026-02-25T10:00:00.000Z" (valor antiguo)
-  And la timestamp actual del sistema es "2026-02-26T15:30:45.123Z"
-When se envía PATCH /api/tickets/550e8400-e29b-41d4-a716-446655440000/status
-  And el body contiene { "status": "IN_PROGRESS" }
-Then el sistema retorna HTTP 200
-  And el campo processed_at del ticket en la respuesta es "2026-02-26T15:30:45.123Z"
-  And el campo processed_at en la base de datos es "2026-02-26T15:30:45.123Z"
-  And el valor nuevo es mayor que el valor antiguo
-```
-
-**Partición de equivalencia**:
-| Grupo | Situación del Timestamp | Tipo |
-|-------|-------------------------|------|
-| Primera actualización | processed_at = null o fecha inicial | Válido |
-| Actualización subsecuente | processed_at = fecha pasada | Válido |
-| Múltiples actualizaciones rápidas | processed_at actualizado hace < 1s | Válido |
-
-**Valores límites**:
-- Timestamp justo después de createdAt
-- Múltiples actualizaciones en el mismo segundo
-- Actualización después de días/semanas
-
----
-
-#### TC-013-011: Manejo de errores de base de datos
-
-- **ID del Test**: TC-013-011
+- **ID del Test**: TC-013-008
 - **ID de la Historia de Usuario**: UH-013
 - **Descripción**: Verificar que el sistema maneja correctamente errores de conexión o fallos en la base de datos.
 - **Precondiciones**: 
@@ -433,9 +331,9 @@ Then el sistema retorna HTTP 500
 
 ---
 
-#### TC-013-012: Request PATCH completa con body válido retorna 200
+#### TC-013-009: Request PATCH completa con body válido retorna 200
 
-- **ID del Test**: TC-013-012
+- **ID del Test**: TC-013-009
 - **ID de la Historia de Usuario**: UH-013
 - **Descripción**: Verificar el flujo completo de una request PATCH exitosa con body válido (Prueba de integración).
 - **Precondiciones**: 
@@ -469,9 +367,9 @@ Then el código de respuesta HTTP es 200
 
 ---
 
-#### TC-013-013: Request PATCH con body inválido retorna 400
+#### TC-013-010: Request PATCH con body inválido retorna 400
 
-- **ID del Test**: TC-013-013
+- **ID del Test**: TC-013-010
 - **ID de la Historia de Usuario**: UH-013
 - **Descripción**: Verificar que requests con body malformado o inválido retornan HTTP 400.
 - **Precondiciones**: 
@@ -513,9 +411,9 @@ Then el sistema retorna HTTP 400
 
 ---
 
-#### TC-013-014: Modal se abre al hacer clic en botón de cambio de estado
+#### TC-013-013: Modal se abre al hacer clic en botón de cambio de estado
 
-- **ID del Test**: TC-013-014
+- **ID del Test**: TC-013-013
 - **ID de la Historia de Usuario**: UH-013
 - **Descripción**: Verificar que el modal de cambio de estado se abre correctamente al hacer clic en el botón correspondiente (Prueba Frontend).
 - **Precondiciones**: 
@@ -549,9 +447,9 @@ Then el modal de cambio de estado se abre y se muestra en pantalla
 
 ---
 
-#### TC-013-015: Modal muestra información correcta del ticket
+#### TC-013-014: Modal muestra información correcta del ticket
 
-- **ID del Test**: TC-013-015
+- **ID del Test**: TC-013-014
 - **ID de la Historia de Usuario**: UH-013
 - **Descripción**: Verificar que el modal muestra correctamente el ID del ticket y su estado actual.
 - **Precondiciones**: 
@@ -578,9 +476,9 @@ Then el modal muestra el texto "Ticket ID: 550e8400-e29b-41d4-a716-446655440000"
 
 ---
 
-#### TC-013-016: Selector muestra todos los estados disponibles
+#### TC-013-015: Selector muestra todos los estados disponibles
 
-- **ID del Test**: TC-013-016
+- **ID del Test**: TC-013-015
 - **ID de la Historia de Usuario**: UH-013
 - **Descripción**: Verificar que el selector (dropdown) del modal muestra todos los estados válidos del dominio.
 - **Precondiciones**: 
@@ -610,9 +508,9 @@ Then el selector contiene exactamente 2 opciones
 
 ---
 
-#### TC-013-017: Modal se cierra al hacer clic en Cancelar
+#### TC-013-016: Modal se cierra al hacer clic en Cancelar
 
-- **ID del Test**: TC-013-017
+- **ID del Test**: TC-013-016
 - **ID de la Historia de Usuario**: UH-013
 - **Descripción**: Verificar que el modal se cierra sin realizar cambios cuando se hace clic en Cancelar.
 - **Precondiciones**: 
@@ -645,9 +543,9 @@ Then el modal se cierra y desaparece de la pantalla
 
 ---
 
-#### TC-013-018: Modal envía request correcta al confirmar cambio
+#### TC-013-0187 Modal envía request correcta al confirmar cambio
 
-- **ID del Test**: TC-013-018
+- **ID del Test**: TC-013-017
 - **ID de la Historia de Usuario**: UH-013
 - **Descripción**: Verificar que al confirmar el cambio, el modal envía la request HTTP correcta al backend.
 - **Precondiciones**: 
@@ -678,9 +576,9 @@ Then el frontend envía una request HTTP PATCH
 
 ---
 
-#### TC-013-019: Lista se actualiza después de cambio exitoso
+#### TC-013-018: Lista se actualiza después de cambio exitoso
 
-- **ID del Test**: TC-013-019
+- **ID del Test**: TC-013-018
 - **ID de la Historia de Usuario**: UH-013
 - **Descripción**: Verificar que la lista de tickets se actualiza correctamente después de un cambio de estado exitoso, sin recargar la página completa.
 - **Precondiciones**: 
@@ -714,9 +612,9 @@ Then el modal se cierra automáticamente
 
 ---
 
-#### TC-013-020: Mensaje de error se muestra en caso de fallo
+#### TC-013-019: Mensaje de error se muestra en caso de fallo
 
-- **ID del Test**: TC-013-020
+- **ID del Test**: TC-013-019
 - **ID de la Historia de Usuario**: UH-013
 - **Descripción**: Verificar que se muestra un mensaje de error descriptivo cuando falla el cambio de estado.
 - **Precondiciones**: 
@@ -757,9 +655,9 @@ Then el modal permanece abierto
 
 ---
 
-#### TC-013-021: Modal se cierra automáticamente después de éxito
+#### TC-013-020: Modal se cierra automáticamente después de éxito
 
-- **ID del Test**: TC-013-021
+- **ID del Test**: TC-013-020
 - **ID de la Historia de Usuario**: UH-013
 - **Descripción**: Verificar que el modal se cierra automáticamente después de mostrar el mensaje de éxito, o permite cierre manual inmediato.
 - **Precondiciones**: 
@@ -793,9 +691,9 @@ Then el modal se cierra inmediatamente
 
 ---
 
-#### TC-013-022: Flujo E2E completo de cambio de estado
+#### TC-013-011: Flujo E2E completo de cambio de estado
 
-- **ID del Test**: TC-013-022
+- **ID del Test**: TC-013-011
 - **ID de la Historia de Usuario**: UH-013
 - **Descripción**: Verificar el flujo end-to-end completo desde que el usuario abre el modal hasta que el estado se persiste en la base de datos (Prueba E2E).
 - **Precondiciones**: 
@@ -839,9 +737,9 @@ Then el frontend envía PATCH /api/tickets/550e8400-e29b-41d4-a716-446655440000/
 
 ---
 
-#### TC-013-023: Múltiples cambios de estado consecutivos
+#### TC-013-012: Múltiples cambios de estado consecutivos
 
-- **ID del Test**: TC-013-023
+- **ID del Test**: TC-013-012
 - **ID de la Historia de Usuario**: UH-013
 - **Descripción**: Verificar que el sistema maneja correctamente múltiples cambios de estado consecutivos en diferentes tickets.
 - **Precondiciones**: 
