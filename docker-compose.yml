@@ -101,7 +101,7 @@ services:
   # FRONTEND
   # ============================================
   frontend:
-    image: ghcr.io/aitraining-sofkaproyects-team2/imag_frontend-service:v1
+    image: ghcr.io/aitraining-sofkaproyects-team2/imag_frontend-service:v2
     container_name: frontend-service
     ports:
       - "80:80"
