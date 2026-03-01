@@ -1102,7 +1102,93 @@ backend/
 │           └── tickets-status.api.test.ts
 ```
 
----
+### 10.4 Estrategia de Datos de Prueba — Datos concretos
+
+Objetivo: proporcionar datos reproducibles y deterministas para las pruebas de integración (paginación, filtros, métricas y cambios de estado).
+
+- Dataset principal (seed) — Totales recomendados:
+  - Paginación y listados: 50 tickets
+  - Métricas y cargas: 150 tickets (subset para pruebas de métricas)
+  - Tests de filtrado combinados: 100 tickets con distribución balanceada
+  - Casos vacíos: 0 tickets (para IT-RQ-015)
+
+- Distribución sugerida (ejemplo):
+  - Estados: 60% RECEIVED, 40% IN_PROGRESS
+  - Prioridades: 25% HIGH, 35% MEDIUM, 30% LOW, 10% PENDING
+  - Tipos: repartir equitativamente entre NO_SERVICE, INTERMITTENT_SERVICE, SLOW_CONNECTION, ROUTER_ISSUE, BILLING_QUESTION, OTHER
+
+- Tickets de ejemplo (usar en tests que requieren IDs concretos):
+  - `550e8400-e29b-41d4-a716-446655440000` — lineNumber: `3001234567`, email: `user1@example.com`, type: `NO_SERVICE`, priority: `HIGH`, status: `RECEIVED`, createdAt: `2026-02-01T10:00:00Z`
+  - `11111111-2222-3333-4444-555555555555` — lineNumber: `3001234568`, email: `user2@example.com`, type: `INTERMITTENT_SERVICE`, priority: `MEDIUM`, status: `IN_PROGRESS`, createdAt: `2026-02-05T12:00:00Z`
+  - `aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee` — (ID inexistente para pruebas 404)
+
+- Formato de seed (archivo JSON de ejemplo: `tests/seed/tickets.seed.json`):
+
+```json
+[
+  {
+    "ticketId": "550e8400-e29b-41d4-a716-446655440000",
+    "lineNumber": "3001234567",
+    "email": "user1@example.com",
+    "type": "NO_SERVICE",
+    "description": "Sin servicio",
+    "status": "RECEIVED",
+    "priority": "HIGH",
+    "createdAt": "2026-02-01T10:00:00Z",
+    "processedAt": null
+  },
+  {
+    "ticketId": "11111111-2222-3333-4444-555555555555",
+    "lineNumber": "3001234568",
+    "email": "user2@example.com",
+    "type": "INTERMITTENT_SERVICE",
+    "description": "Servicio intermitente",
+    "status": "IN_PROGRESS",
+    "priority": "MEDIUM",
+    "createdAt": "2026-02-05T12:00:00Z",
+    "processedAt": "2026-02-05T12:05:00Z"
+  }
+]
+```
+
+- Ejemplos para `POST /complaints` (Producer) — body válido de prueba:
+
+```json
+{
+  "lineNumber": "3001234569",
+  "email": "submitter@example.com",
+  "incidentType": "NO_SERVICE",
+  "description": "Sin servicio desde ayer"
+}
+```
+
+- Mensaje de RabbitMQ esperado (ejemplo) — evento que el Producer encola:
+
+```json
+{
+  "ticketId": "generated-uuid",
+  "lineNumber": "3001234569",
+  "email": "submitter@example.com",
+  "incidentType": "NO_SERVICE",
+  "description": "Sin servicio desde ayer",
+  "createdAt": "2026-02-18T10:00:00Z",
+  "status": "RECEIVED"
+}
+```
+
+- Cómo cargar los datos en tests de integración (setup/teardown):
+  - Opción A (mock repository): usar `vi.mock()` en tests e inyectar los arrays desde `tests/seed/*.json`.
+  - Opción B (BD de test): ejecutar script `npm run seed:test` que lea `tests/seed/*.json` y haga inserts a la BD de prueba antes de cada suite; limpiar con `npm run seed:clear` en teardown.
+
+Comandos recomendados para ejecución local/CI:
+
+```bash
+# Cargar seed en DB de prueba
+npm run seed:test
+
+# Ejecutar tests de integración (solo reports-query)
+npm run test:integration -- reports-query
+```
 
 ## 11. Calendario de Pruebas
 
