@@ -1,7 +1,7 @@
 # 🧪 Plan de Pruebas V3 — API REST & Pruebas de Integración
 
 **Proyecto:** Sistema Distribuido de Gestión de Quejas ISP  
-**Versión del documento:** 2.0  
+**Versión del documento:** 3.0  
 **Fecha de creación:** 27 de febrero de 2026  
 **Basado en:** [TEST_PLAN.md](./TEST_PLAN.md), [ARCHITECTURE.md](./ARCHITECTURE.md), [REQUERIMIENTOS_COMPLETOS.md](./REQUERIMIENTOS_COMPLETOS.md), [TESTS_DESIGNS.md](./TESTS_DESIGNS.md), [CALIDAD.md](./CALIDAD.md), [FASE_3_HISTORIAS_RIESGOS.md](./FASE_3_HISTORIAS_RIESGOS.md), [UHs_INVEST.md](./UHs_INVEST.md)
 
