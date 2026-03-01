@@ -62,25 +62,168 @@ Estos repositorios son organizados en la organización `AITraining-SofkaProyects
 - Reports-Query: `Semana-3-microservicio-Reports-query`
 
 ---
-## 4. Endpoints de servicios
+## 4. Manejo Centralizado de Errores (Reports-Query)
 
-### Producer
-#### POST api/v1/tikets
-url => api/v1/tikets
-verbo http => POST
-códigos de estado:
-- 202: ticket recibido y en proceso
-- 500: error interno
-- 503: servicio no disponible (RabbitMQ down)
+El microservicio Reports-Query implementa un **patrón Chain of Responsibility** para el manejo de errores HTTP, garantizando que cada tipo de error se mapee a un código HTTP semántico correcto.
 
-## Producer
+### Arquitectura del manejo de errores
 
-### `POST /complaints`
+```
+Controlador (TicketsController)
+    ↓
+Servicio (TicketQueryService) → Lanza error específico
+    ↓
+asyncHandler → Captura el error y lo propaga
+    ↓
+errorHandler (middleware) → Evalúa tipo y mapea a HTTP
+    ↓
+Cliente ← Respuesta HTTP + JSON
+```
 
-url = `/complaints`
-http = POST
+### Flujo detallado
+
+#### 1. **Servicio lanza error específico**
+El servicio valida parámetros y lanza errores tipados:
+
+```typescript
+// src/services/TicketQueryService.ts
+async findById(ticketId: string): Promise<Ticket> {
+  if (!UUID_V4_REGEX.test(ticketId)) {
+    throw new InvalidUuidFormatError();  // ❌ Error tipado
+  }
+  
+  const ticket = await this.repository.findById(ticketId);
+  if (ticket === null) {
+    throw new TicketNotFoundError();     // ❌ Error tipado
+  }
+  
+  return ticket;
+}
+```
+
+#### 2. **Controlador delega sin try-catch**
+El controlador NO intercepta errores, los deja propagarse:
+
+```typescript
+// src/controllers/ticketsController.ts
+async getTicketById(req: Request, res: Response): Promise<void> {
+  const { ticketId } = req.params;
+  const ticket = await this.queryService.findById(ticketId);  // ← Error aquí
+  res.status(200).json(ticket);
+}
+```
+
+#### 3. **asyncHandler captura y propaga**
+El wrapper captura promesas rechazadas y las envía al middleware:
+
+```typescript
+// src/utils/asyncHandler.ts
+export const asyncHandler = (fn) => {
+  return (req, res, next) => {
+    fn(req, res, next).catch(next);  // ← Captura y propaga con next()
+  };
+};
+```
+
+#### 4. **errorHandler mapea a HTTP**
+El middleware centralizado evalúa el tipo de error y retorna el código correcto:
+
+```typescript
+// src/middlewares/errorHandler.ts
+export function errorHandler(err: Error, _req: Request, res: Response, _next: NextFunction): void {
+  // Evaluación secuencial (Chain of Responsibility)
+  
+  // 400 — Validación con cuerpo personalizado
+  if (err instanceof ValidationError) {
+    res.status(400).json(err.responseBody);
+    return;
+  }
+
+  // 400 — Formato de UUID inválido
+  if (err instanceof InvalidUuidFormatError) {
+    res.status(400).json({ error: err.message });
+    return;
+  }
+
+  // 404 — Recurso no encontrado
+  if (err instanceof TicketNotFoundError) {
+    res.status(404).json({ error: err.message });
+    return;
+  }
+
+  // N — Errores con propiedad status inyectada (extensible)
+  if ('status' in err && typeof (err as any).status === 'number') {
+    res.status((err as any).status).json({ error: err.message });
+    return;
+  }
+
+  // 500 — Error desconocido / fallback seguro
+  res.status(500).json({ error: 'Internal server error' });
+}
+```
+
+### Tipos de errores y mapeo HTTP
+
+| Tipo de Error | Código HTTP | Ejemplo |
+|---|:---:|---|
+| `ValidationError` | 400 | Parámetros de query inválidos (`status=INVALID`) |
+| `InvalidUuidFormatError` | 400 | UUID malformado en `/api/tickets/not-a-uuid` |
+| `InvalidTicketStatusError` | 400 | Status no permitido al actualizar |
+| `TicketNotFoundError` | 404 | Ticket no existe: `/api/tickets/550e8400-e29b-41d4-a716-446655440000` |
+| Error desconocido | 500 | Cualquier error no capturado por los tipos anteriores |
+
+### Ejemplo completo: GET /api/tickets/:ticketId
+
+**Caso 1: UUID válido, ticket existe → 200**
+```
+GET /api/tickets/550e8400-e29b-41d4-a716-446655440000
+→ TicketQueryService.findById() valida UUID ✓
+→ Busca en DB ✓
+→ Retorna ticket
+→ Respuesta: 200 + JSON del ticket
+```
+
+**Caso 2: UUID inválido → 400**
+```
+GET /api/tickets/invalid-uuid
+→ InvalidUuidFormatError lanzado
+→ asyncHandler lo captura
+→ errorHandler verifica tipo
+→ Respuesta: 400 + { error: "Invalid UUID format" }
+```
+
+**Caso 3: UUID válido, ticket no existe → 404**
+```
+GET /api/tickets/550e8400-e29b-41d4-a716-446655440000
+→ TicketQueryService valida UUID ✓
+→ Busca en DB, no encuentra
+→ TicketNotFoundError lanzado
+→ asyncHandler lo captura
+→ errorHandler verifica tipo
+→ Respuesta: 404 + { error: "Ticket not found" }
+```
+
+### Ventajas de esta arquitectura
+
+✅ **Controladores limpios** — Sin try-catch anidados, solo lógica de negocio  
+✅ **Manejo centralizado** — Un único lugar para mapear errores a HTTP  
+✅ **Extensible** — Agregar nuevos tipos de error es simple (agregar otro `if` al errorHandler)  
+✅ **Semántico** — Cada error → código HTTP correcto  
+✅ **Fallback seguro** — Errores desconocidos → 500, nunca falla silenciosamente  
+✅ **Testeable** — Cada tipo de error se puede testear independientemente
+
+---
+## 5. Endpoints de servicios
+
+### Producer - `POST /complaints`
+
+url = `/complaints`  
+http = POST  
 códigos de estado:
 - ~~`201 Created`~~ => `202 Accepted`: ticket recibido y en proceso
+- `500`: error interno
+- `503`: servicio no disponible (RabbitMQ down)
+
 Cuerpo de la petición (JSON):
 ```json
 {
@@ -90,31 +233,25 @@ Cuerpo de la petición (JSON):
   "createdAt": "2024-01-01T00:00:00Z"
 }
 ```
-**Descripción:**
-  El endpoint `POST /complaints` del Producer pasa de responder `201 Created` a `202 Accepted` cuando la creación implica encolado asíncrono del evento.
-**Motivo:** 
-  La operación principal del Producer es aceptar la petición y encolar un evento para el Consumer; la persistencia la realiza el Consumer. Responder `202` permite que el Producer confirme recepción sin bloquearse por la confirmación del broker.
+
+**Descripción:**  
+El endpoint `POST /complaints` del Producer pasa de responder `201 Created` a `202 Accepted` cuando la creación implica encolado asíncrono del evento.
+
+**Motivo:**  
+La operación principal del Producer es aceptar la petición y encolar un evento para el Consumer; la persistencia la realiza el Consumer. Responder `202` permite que el Producer confirme recepción sin bloquearse por la confirmación del broker.
+
 **Comportamiento y contrato del endpoint después del cambio:**
-  - Endpoint: `POST /complaints`
-  - Código HTTP: `202 Accepted`
-  - Cuerpo de respuesta (JSON):
-    - `ticketId` (string): identificador único del ticket generado.
-    - `status` (string): valor inicial `RECEIVED` (indica que el ticket fue aceptado para procesamiento).
-    - `message` (string): texto breve — ejemplo: `Accepted for processing`.
-    - `createdAt` (string, ISO-8601): timestamp de creación del ticket.
+- Endpoint: `POST /complaints`
+- Código HTTP: `202 Accepted`
+- Cuerpo de respuesta (JSON):
+  - `ticketId` (string): identificador único del ticket generado.
+  - `status` (string): valor inicial `RECEIVED` (indica que el ticket fue aceptado para procesamiento).
+  - `message` (string): texto breve — ejemplo: `Accepted for processing`.
+  - `createdAt` (string, ISO-8601): timestamp de creación del ticket.
 
-- **Conclusion:** 
-    Se cambió el comportamiento de `POST /complaints`: antes el endpoint aguardaba la confirmación de publicación en RabbitMQ y devolvía `201 Created` con el ticket completo. Ahora el endpoint devuelve `202 Accepted` y un cuerpo reducido ({ ticketId, status: 'RECEIVED', message, createdAt }) inmediatamente; la publicación a RabbitMQ se hace en modo asíncrono.Errores no controlados siguen mapeándose a `500 Internal Server Error`.
+---
 
-    Si NO hay garantía (no hay outbox/local-persist, y no puede conectarse a RabbitMQ), lo correcto es devolver 503 Service Unavailable o 5xx equivalente: no puedes aceptar la petición para procesamiento si no puedes siquiera encolarla ni garantizar reintento.
-    Alternativas operativas (elige según requisitos de fiabilidad):
-      1. Síncrono + confirmación broker: intentar publicar y, si OK, devolver 201/202; si broker down, devolver 503. (simple, fuerte garantía)
-      2. Asíncrono con Outbox/cola local durable: persistir el evento localmente atomically, devolver 202 inmediatamente; un worker publica a RabbitMQ en segundo plano (recomendado si quieres disponibilidad del API con durable guarantee).
-      3. Asíncrono sin persistencia local: devolver 202 al iniciar el envío y confiar en logs/metricas/reintentos en memoria — riesgo de pérdida de mensajes si Rabbit cae (poco recomendable para producción).
-
-
-
-## Reports-query
+### Reports-query
 
 ### Antes de la refactorización
 | Endpoint | 200 | 400 | 404 | 405 | 500 |
@@ -140,16 +277,57 @@ Cuerpo de la petición (JSON):
 
 
 ### `GET /health`
+![reports-get-health-200](./evidencias%20postman/reports-get-health-200.png)
 
 ### `GET /api/tickets`
+#### 200 OK 
+![reports-get-api-tickets-200](./evidencias%20postman/reports-get-api-tickets-200.png)
+
+#### 400 Bad Request
+![reports-get-api-tickets-400](./evidencias%20postman/reports-get-api-tickets-400.png)
+
+#### 500 Internal Server Error
+![reports-get-api-tickets-500](./evidencias%20postman/reports-get-api-tickets-500.png)
+
 
 ### `GET /api/tickets/metrics`
+#### 200 OK
+![reports-get-api-tickets-metrics-200](./evidencias%20postman/reports-get-api-tickets-metrics-200.png)
+
+#### 500 Internal Server Error
+![reports-get-api-tickets-metrics-500](./evidencias%20postman/reports-get-api-tickets-metrics-500.png)
 
 ### `GET /api/tickets/line/:lineNumber`
+#### 200 OK
+![reports-get-api-tickets-line-200](./evidencias%20postman/reports-get-api-tickets-line-200.png)
+
+#### 400 Bad Request
+![reports-get-api-tickets-line-400](./evidencias%20postman/reports-get-api-tickets-line-400.png)
+
+#### 500 Internal Server Error
+![reports-get-api-tickets-metrics-500](./evidencias%20postman/reports-get-api-tickets-metrics-500.png)
 
 ### `GET /api/tickets/:ticketId`
+#### 200 OK
+![reports-get-api-tickets-id-200](./evidencias%20postman/reports-get-api-tickets-id-200.png)
+
+#### 400 Bad Request
+![reports-get-api-tickets-id-400](./evidencias%20postman/reports-get-api-tickets-id-400.png)
+
+#### 404 Not Found
+![reports-get-api-tickets-id-404](./evidencias%20postman/reports-get-api-tickets-id-404.png)
+
+#### 500 Internal Server Error 
+![reports-get-api-tickets-id-500](./evidencias%20postman/reports-get-api-tickets-id-500.png)
 
 ### `POST/PUT/DELETE /api/*`
+#### 405 Method Not Allowed
+![reports-post-api-_](./evidencias%20postman/reports-post-api-_.png)
+
+![reports-delete-api-_](./evidencias%20postman/reports-delete-api-_.png)
+
+![reports-put-api-_](./evidencias%20postman/reports-put-api-_.png)
 
 ### Rutas desconocidas
-
+#### 404 Not Found
+![ruta no encontrada](./evidencias%20postman/rutaNoEncontrada.png)
