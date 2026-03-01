@@ -1,4 +1,4 @@
-# 🧪 Plan de Pruebas V2 — API REST & Pruebas de Integración
+# 🧪 Plan de Pruebas V3 — API REST & Pruebas de Integración
 
 **Proyecto:** Sistema Distribuido de Gestión de Quejas ISP  
 **Versión del documento:** 2.0  
