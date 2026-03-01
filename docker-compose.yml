@@ -1,7 +1,4 @@
-version: "3.9"
-
 services:
-
   # ============================================
   # MESSAGE BROKER
   # ============================================
@@ -33,7 +30,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ../Reports-query/docker/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ../Semana-3-microservicio-Reports-query/docker/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U user"]
       interval: 10s
@@ -46,7 +43,7 @@ services:
   # PRODUCER SERVICE (API)
   # ============================================
   producer:
-    image: ghcr.io/aitraining-sofkaproyects-team2/imag_producer-service:v1
+    image: ghcr.io/aitraining-sofkaproyects-team2/imag_producer-service:v2
     container_name: producer-service
     ports:
       - "3000:3000"
@@ -61,7 +58,7 @@ services:
   # WORKER SERVICE (CONSUMER)
   # ============================================
   consumer:
-    image: ghcr.io/aitraining-sofkaproyects-team2/imag_consumer-service:v1
+    image: ghcr.io/aitraining-sofkaproyects-team2/imag_consumer-service:v2
     container_name: consumer-service
     environment:
       RABBITMQ_URL: amqp://rabbitmq:5672
@@ -104,7 +101,7 @@ services:
   # FRONTEND
   # ============================================
   frontend:
-    image: ghcr.io/aitraining-sofkaproyects-team2/imag_frontend-service:v1
+    image: ghcr.io/aitraining-sofkaproyects-team2/imag_frontend-service:v2
     container_name: frontend-service
     ports:
       - "80:80"

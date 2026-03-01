@@ -8,7 +8,7 @@
 
 <img alt="Static Badge" src="https://img.shields.io/badge/backend%20-%20microservicio%203%20-%20%20orange?style=plastic"> => [Microservicio Reports-query](https://github.com/AITraining-SofkaProyects-Team2/Semana-3-microservicio-Reports-query)
 
-<img alt="Static Badge" src="https://img.shields.io/badge/docker%20compose%20-%20%23007ec6?style=plastic"> => [docker-compose]
+<img alt="Static Badge" src="https://img.shields.io/badge/docker%20compose%20-%20%23007ec6?style=plastic"> => [docker-compose](https://github.com/AITraining-SofkaProyects-Team2/.github/blob/main/docker-compose.yml)
 
 ## Documentación
 
