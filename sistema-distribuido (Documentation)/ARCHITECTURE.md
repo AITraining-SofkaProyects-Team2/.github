@@ -37,119 +37,68 @@ El sistema completo está estructurado en tres servicios principales (Producer, 
 
 ---
 
-## 3. Arquitectura Actual
+## 3. Evolución de la Infraestructura: De Monorepo a Multi-repo
 
-Actualmente todo el sistema está integrado en un único repositorio con la siguiente estructura general:
+El sistema nació diseñado bajo una arquitectura de microservicios, inicialmente gestionados dentro de un **Monorepo** (un único repositorio con carpetas independientes para cada servicio). Para mejorar el orden, la autonomía y el ciclo de vida de cada componente, se realizó la transición a una estructura de **Multi-repo** dentro de la organización `AITraining-SofkaProyects-Team2`.
 
-```
-/
-├── frontend/                # Aplicación React
-├── backend/
-│   ├── producer/            # API REST para recibir quejas
-│   ├── consumer/            # Worker que procesa quejas desde RabbitMQ
-│   └── reports-query/       # Worker que genera reportes desde DB
-├── docker-compose.yml       # Orquestación local
-└── documentación/           # Documentación del proyecto
-```
+### Actividad 1.1: Debate Arquitectónico
 
-Esto genera un problema de independencia entre servicios, acoplamiento en el desarrollo y despliegue, y dificulta la escalabilidad.
-Al ser un monorepo, los despliegues CI no pueden ser totalmente independientes, lo que puede probocar un aumento en el tiempo de despliegue y una mayor probabilidad de errores al afectar a servicios no relacionados.
-Para mejorar esta arquitectura y eliminar el sistema monolítico, se propone separar cada servicio en su propio repositorio, con su propio ciclo de vida, pipeline de CI/CD y despliegue independiente. Esto permitirá una mayor flexibilidad, escalabilidad y mantenibilidad a largo plazo.
-Estos repositorios son organizados en la organización `AITraining-SofkaProyects-Team2` de GitHub, con los siguientes nombres:
-- Frontend: `Semana-03-frontend`
-- Producer: `Semana-3-microservicio-Producer`
-- Consumer: `Semana-3-microservicio-Consumer`
-- Reports-Query: `Semana-3-microservicio-Reports-query`
+#### 3.1 Análisis del "Monorepo Inicial" (Dolores)
+Aunque los microservicios ya estaban divididos lógicamente en carpetas (`backend/producer`, `backend/consumer`, etc.), el uso de un único repositorio compartido presentaba los siguientes inconvenientes operativos:
+*   **Acoplamiento en el Pipeline**: Cada cambio en un servicio disparaba (o podía disparar) tests y validaciones de otros componentes no relacionados, ralentizando el feedback de CI.
+*   **Gestión de Versiones y Tags**: Era complejo versionar y etiquetar individualmente cada microservicio (ej. desplegar la v1.2 del Producer mientras el Consumer seguía en v1.0).
+*   **Dificultad de Orden y Acceso**: El crecimiento de la base de código bajo un solo árbol de directorios dificultaba la organización de permisos, revisiones de código y el enfoque de los desarrolladores en un solo dominio.
+*   **Dependencia de Despliegue**: Los ciclos de despliegue solían estar atados a una única rama principal, dificultando la entrega continua independiente para cada servicio.
+
+#### 3.2 Transición hacia Multi-repo y Clean Architecture (Beneficios)
+La migración a repositorios independientes, manteniendo el enfoque de **Clean Architecture** interno, ha aportado los siguientes beneficios:
+*   **Independencia de Ciclo de Vida**: Cada microservicio tiene ahora su propio Pipeline de CI/CD, permitiendo despliegues granulares y tags de versión totalmente independientes.
+*   **Enfoque y Orden Organizacional**: La separación en la organización de GitHub permite una gestión de incidencias, documentación y tableros de proyecto específica por servicio.
+*   **Resiliencia y Aislamiento**: Al estar en repositorios físicos distintos, se garantiza un aislamiento total en el desarrollo, evitando dependencias accidentales entre servicios mediante rutas de archivos locales.
+*   **Testabilidad Optimizada**: El reporte de cobertura y las pruebas unitarias son ahora específicos para cada artefacto, facilitando el cumplimiento de los estándares de QA (>75% en Consumer, >90% en Producer).
+
+#### 3.3 Nueva Estructura Multirepositorio
+Los microservicios se han distribuido en los siguientes repositorios independientes:
+*   **Frontend**: `Semana-03-frontend` (React + Vite)
+*   **Producer**: `Semana-3-microservicio-Producer` (API Gateway / Mensajería)
+*   **Consumer**: `Semana-3-microservicio-Consumer` (Worker / Lógica de Negocio)
+*   **Reports-Query**: `Semana-3-microservicio-Reports-query` (Lectura / Dashboard)
+
 
 ---
-## 4. Endpoints de servicios
+## 4. Endpoints de Servicios (Contrato Actual)
 
-### Producer
-#### POST api/v1/tikets
-url => api/v1/tikets
-verbo http => POST
-códigos de estado:
-- 202: ticket recibido y en proceso
-- 500: error interno
-- 503: servicio no disponible (RabbitMQ down)
+### Producer Microservice
+Servicio de entrada para nuevas quejas ISP.
 
-## Producer
+*   **Endpoint**: `POST /complaints`
+*   **Códigos de Estado**:
+    *   `202 Accepted`: Ticket validado y encolado en RabbitMQ.
+    *   `400 Bad Request`: Fallo en validación (email, tipo, descripción faltante en 'OTHER').
+    *   **503 Service Unavailable**: Broker de mensajería no disponible.
+*   **Payload**: `{ lineNumber, email, incidentType, description }`
 
-### `POST /complaints`
+### Consumer Microservice (Worker)
+Procesa mensajes asíncronos y persiste en PostgreSQL.
 
-url = `/complaints`
-http = POST
-códigos de estado:
-- ~~`201 Created`~~ => `202 Accepted`: ticket recibido y en proceso
-Cuerpo de la petición (JSON):
-```json
-{
-  "ticketId": "1234567890",
-  "status": "RECEIVED",
-  "message": "Accepted for processing",
-  "createdAt": "2024-01-01T00:00:00Z"
-}
-```
-**Descripción:**
-  El endpoint `POST /complaints` del Producer pasa de responder `201 Created` a `202 Accepted` cuando la creación implica encolado asíncrono del evento.
-**Motivo:** 
-  La operación principal del Producer es aceptar la petición y encolar un evento para el Consumer; la persistencia la realiza el Consumer. Responder `202` permite que el Producer confirme recepción sin bloquearse por la confirmación del broker.
-**Comportamiento y contrato del endpoint después del cambio:**
-  - Endpoint: `POST /complaints`
-  - Código HTTP: `202 Accepted`
-  - Cuerpo de respuesta (JSON):
-    - `ticketId` (string): identificador único del ticket generado.
-    - `status` (string): valor inicial `RECEIVED` (indica que el ticket fue aceptado para procesamiento).
-    - `message` (string): texto breve — ejemplo: `Accepted for processing`.
-    - `createdAt` (string, ISO-8601): timestamp de creación del ticket.
+*   **Responsabilidad**: Cálculo de prioridad, determinación de estado y persistencia.
+*   **Manejo de Errores**: Reintento exponencial (hasta 3 veces) antes de enviar a **Dead Letter Queue (DLQ)**.
 
-- **Conclusion:** 
-    Se cambió el comportamiento de `POST /complaints`: antes el endpoint aguardaba la confirmación de publicación en RabbitMQ y devolvía `201 Created` con el ticket completo. Ahora el endpoint devuelve `202 Accepted` y un cuerpo reducido ({ ticketId, status: 'RECEIVED', message, createdAt }) inmediatamente; la publicación a RabbitMQ se hace en modo asíncrono.Errores no controlados siguen mapeándose a `500 Internal Server Error`.
+### Reports-query Microservice
+Servicio para consulta y generación de reportes de tickets.
 
-    Si NO hay garantía (no hay outbox/local-persist, y no puede conectarse a RabbitMQ), lo correcto es devolver 503 Service Unavailable o 5xx equivalente: no puedes aceptar la petición para procesamiento si no puedes siquiera encolarla ni garantizar reintento.
-    Alternativas operativas (elige según requisitos de fiabilidad):
-      1. Síncrono + confirmación broker: intentar publicar y, si OK, devolver 201/202; si broker down, devolver 503. (simple, fuerte garantía)
-      2. Asíncrono con Outbox/cola local durable: persistir el evento localmente atomically, devolver 202 inmediatamente; un worker publica a RabbitMQ en segundo plano (recomendado si quieres disponibilidad del API con durable guarantee).
-      3. Asíncrono sin persistencia local: devolver 202 al iniciar el envío y confiar en logs/metricas/reintentos en memoria — riesgo de pérdida de mensajes si Rabbit cae (poco recomendable para producción).
+*   **Endpoints**:
+    *   `GET /api/tickets`: Listado con filtros y paginación.
+    *   `GET /api/tickets/metrics`: Agregaciones operacionales.
+    *   `GET /api/tickets/line/:lineNumber`: Histórico por línea cliente.
+    *   `GET /api/tickets/:ticketId`: Detalle de un ticket específico.
+    *   `PATCH /api/tickets/:ticketId/status`: Actualización manual de estado (Gestión operativa).
+*   **Validación**: Esquema estricto para filtros de consulta, retornando `400 Bad Request` en parámetros inválidos.
 
+---
 
+## 5. Diseño de Base de Datos y Comunicación
 
-## Reports-query
-
-### Antes de la refactorización
-| Endpoint | 200 | 400 | 404 | 405 | 500 |
-|----------|:---:|:---:|:---:|:---:|:---:|
-| `GET /health` | ✅ | — | — | — | — |
-| `GET /api/tickets` | ✅ | ❌ Sin validación de params | — | — | ✅ |
-| `GET /api/tickets/metrics` | ✅ | — | — | — | ✅ |
-| `GET /api/tickets/line/:lineNumber` | ✅ | ❌ Error genérico → 500 | — | — | ✅ |
-| `GET /api/tickets/:ticketId` | ✅ | ✅ InvalidUuidFormatError | ✅ TicketNotFoundError | — | ✅ |
-| `POST /api/tickets` | — | — | — | ❌ Sin handler | — |
-| Rutas desconocidas | — | — | ❌ Sin catch-all | — | — |
-
-### Después de la refactorización
-| Endpoint | 200 | 400 | 404 | 405 | 500 |
-|----------|:---:|:---:|:---:|:---:|:---:|
-| `GET /health` | ✅ | — | — | — | — |
-| `GET /api/tickets` | ✅ | ✅ Validación completa | — | — | ✅ |
-| `GET /api/tickets/metrics` | ✅ | — | — | — | ✅ |
-| `GET /api/tickets/line/:lineNumber` | ✅ | ✅ ValidationError | — | — | ✅ |
-| `GET /api/tickets/:ticketId` | ✅ | ✅ InvalidUuidFormatError | ✅ TicketNotFoundError | — | ✅ |
-| `POST/PUT/DELETE /api/*` | — | — | — | ✅ 405 + `Allow: GET` | — |
-| Rutas desconocidas | — | — | ✅ 404 JSON | — | — |
-
-
-### `GET /health`
-
-### `GET /api/tickets`
-
-### `GET /api/tickets/metrics`
-
-### `GET /api/tickets/line/:lineNumber`
-
-### `GET /api/tickets/:ticketId`
-
-### `POST/PUT/DELETE /api/*`
-
-### Rutas desconocidas
-
+*   **PostgreSQL**: Tabla central `tickets` compartida por Consumer (Escritura) y Reports-query (Lectura).
+*   **RabbitMQ**: Comunicación unidireccional `Producer → Consumer` mediante colas durables.
+*   **Health Checks**: Cada microservicio expone su estado interno (conexión a broker/DB y métricas operacionales) para observabilidad.
