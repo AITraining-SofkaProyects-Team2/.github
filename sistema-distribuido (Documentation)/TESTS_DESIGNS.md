@@ -20,13 +20,13 @@ Este documento contiene el diseño detallado de los casos de prueba para las his
 | GREEN | TC-013-006 | UH-013 | Error 404 - Ticket no encontrado | Unitario |
 | GREEN | TC-013-007 | UH-013 | Actualización idempotente - mismo estado | Unitario |
 | GREEN | TC-013-008 | UH-013 | Manejo de errores de base de datos | Unitario |
-| ⬜ | TC-013-009 | UH-013 | Request PATCH completa con body válido retorna 200 | integración de componentes |
-| ⬜ | TC-013-010 | UH-013 | Request PATCH con body inválido retorna 400 | integración de componentes |
+| GREEN | TC-013-009 | UH-013 | Request PATCH completa con body válido retorna 200 | integración de componentes |
+| GREEN | TC-013-010 | UH-013 | Request PATCH con body inválido retorna 400 | integración de componentes |
 | ⬜ | TC-013-011 | UH-013 | Flujo E2E completo de cambio de estado | E2E |
 | ⬜ | TC-013-012 | UH-013 | Múltiples cambios de estado consecutivos | E2E |
 
 ===TESTS EN FRONTEND===
-| RED | TC-013-013 | UH-013 | Modal se abre al hacer clic en botón de cambio de estado | integración de componentes |
+| GREEN | TC-013-013 | UH-013 | Modal se abre al hacer clic en botón de cambio de estado | integración de componentes |
 | GREEN | TC-013-014 | UH-013 | Modal muestra información correcta del ticket | integración de componentes |
 | GREEN | TC-013-015 | UH-013 | Selector muestra todos los estados disponibles | integración de componentes |
 | GREEN | TC-013-016 | UH-013 | Modal se cierra al hacer clic en Cancelar | integración de componentes |
