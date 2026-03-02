@@ -39,6 +39,7 @@
 - [ARCHITECTURE.md](https://github.com/AITraining-SofkaProyects-Team2/.github/blob/main/sistema-distribuido%20(Documentation)/ARCHITECTURE.md)
 - [UHs_INVEST.md](https://github.com/AITraining-SofkaProyects-Team2/.github/blob/main/sistema-distribuido%20(Documentation)/UHs_INVEST.md)
 - [TESTS_DESIGNS.md](https://github.com/AITraining-SofkaProyects-Team2/.github/blob/main/sistema-distribuido%20(Documentation)/TESTS_DESIGNS.md)
+- [TEST_PLAN_V3.md](https://github.com/AITraining-SofkaProyects-Team2/.github/blob/main/sistema-distribuido%20(Documentation)/TEST_PLAN_V3.md)
 
 ## GIthub Action:
 
