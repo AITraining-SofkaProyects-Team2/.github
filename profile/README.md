@@ -33,12 +33,15 @@
 - [FASE_4_AMBIGUEDADES_VALIDACION.md](https://github.com/AITraining-SofkaProyects-Team2/.github/blob/main/sistema-distribuido%20(Documentation)/FASE_4_AMBIGUEDADES_VALIDACION.md)
 - [DOCUMENTO_FINAL_ANALISIS_REQUERIMIENTOS.md](https://github.com/AITraining-SofkaProyects-Team2/.github/blob/main/sistema-distribuido%20(Documentation)/DOCUMENTO_FINAL_ANALISIS_REQUERIMIENTOS.md)
 - [TEST_PLAN.md](https://github.com/AITraining-SofkaProyects-Team2/.github/blob/main/sistema-distribuido%20(Documentation)/TEST_PLAN.md)
-
+- [HANDOVER_REPORT.md](https://github.com/AITraining-SofkaProyects-Team2/Taller-Sistema-Distribuido.-/blob/main/documentaci%C3%B3n/HANDOVER_REPORT.md)
+- [LOGS DE EJECUCION DE PRUEBAS(TDD)](https://github.com/AITraining-SofkaProyects-Team2/Taller-Sistema-Distribuido.-/tree/main/documentaci%C3%B3n/Evidencia-Unit-Tests)
 
 ## Semana 3
 - [ARCHITECTURE.md](https://github.com/AITraining-SofkaProyects-Team2/.github/blob/main/sistema-distribuido%20(Documentation)/ARCHITECTURE.md)
 - [UHs_INVEST.md](https://github.com/AITraining-SofkaProyects-Team2/.github/blob/main/sistema-distribuido%20(Documentation)/UHs_INVEST.md)
 - [TESTS_DESIGNS.md](https://github.com/AITraining-SofkaProyects-Team2/.github/blob/main/sistema-distribuido%20(Documentation)/TESTS_DESIGNS.md)
+- [TEST_PLAN_V3.md](https://github.com/AITraining-SofkaProyects-Team2/.github/blob/main/sistema-distribuido%20(Documentation)/TEST_PLAN_V3.md)
+- [matriz de pruebas](https://github.com/AITraining-SofkaProyects-Team2/.github/blob/main/sistema-distribuido%20(Documentation)/tests-semana3.xlsx)
 
 ## GIthub Action:
 
