@@ -81,7 +81,7 @@ services:
   # REPORTS QUERY SERVICE
   # ============================================
   reports-query:
-    image: ghcr.io/aitraining-sofkaproyects-team2/imag_report-query-service:v2
+    image: ghcr.io/aitraining-sofkaproyects-team2/imag_report-query-service:v3
     container_name: reports-query-service
     ports:
       - "4000:4000"
@@ -101,7 +101,7 @@ services:
   # FRONTEND
   # ============================================
   frontend:
-    image: ghcr.io/aitraining-sofkaproyects-team2/imag_frontend-service:v2
+    image: ghcr.io/aitraining-sofkaproyects-team2/imag_frontend-service:v3
     container_name: frontend-service
     ports:
       - "80:80"
